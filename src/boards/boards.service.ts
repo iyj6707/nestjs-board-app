@@ -1,48 +1,57 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { v1 as uuid } from 'uuid';
-import { Board, BoardStatus } from './board.model';
+import { Board, BoardStatus } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 
 @Injectable()
 export class BoardsService {
-    private boards: Board[] = [];
+    constructor(
+        private readonly prisma: PrismaService
+    ) { }
 
-    getAllBoards(): Board[] {
-        return this.boards;
-    }
-
-    createBoard(createBoardDto: CreateBoardDto) {
-        const { title, description } = createBoardDto;
-
-        const board: Board = {
-            id: uuid(),
-            title,
-            description,
-            status: BoardStatus.PUBLIC
-        }
-
-        this.boards.push(board)
-        return board;
-    }
-
-    getBoardById(id: string): Board {
-        const found = this.boards.find((board) => board.id === id);
+    async getBoardById(id: number): Promise<Board> {
+        const found = await this.prisma.board.findUnique({
+            where: { id },
+        });
 
         if (!found) {
-            throw new NotFoundException(`Can't find Board with id ${id}`);
+            throw new NotFoundException();
         }
 
         return found;
     }
 
-    deleteBoard(id: string): void {
-        const found = this.getBoardById(id);
-        this.boards = this.boards.filter((board) => board.id !== found.id);
+    async getAllBoards(): Promise<Board[]> {
+        return await this.prisma.board.findMany();
     }
 
-    updateBoardStatus(id: string, status: BoardStatus): Board {
-        const board = this.getBoardById(id);
-        board.status = status;
+    async createBoard(createBoardDto: CreateBoardDto): Promise<Board> {
+        return this.prisma.board.create({
+            data: {
+                ...createBoardDto,
+                status: BoardStatus.PUBLIC
+            }
+        })
+    }
+
+    async deleteBoard(id: number): Promise<void> {
+        await this.prisma.board.delete({
+            where: {
+                id: id
+            }
+        });
+    }
+
+    async updateBoardStatus(id: number, status: BoardStatus): Promise<Board> {
+        const board = await this.prisma.board.update({
+            where: {
+                id: id,
+            },
+            data: {
+                status: status,
+            },
+        });
+
         return board;
     }
 }

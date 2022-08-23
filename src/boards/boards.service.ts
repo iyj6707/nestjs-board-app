@@ -45,10 +45,10 @@ export class BoardsService {
     async updateBoardStatus(id: number, status: BoardStatus): Promise<Board> {
         const board = await this.prisma.board.update({
             where: {
-                id: id,
+                id,
             },
             data: {
-                status: status,
+                status,
             },
         });
 

@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Logger, Param, ParseIntPipe, Patch, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Board, BoardStatus } from '@prisma/client';
+import { Board, BoardStatus, User } from '@prisma/client';
+import { GetUser } from 'src/auth/get-user.decorator';
 import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { BoardStatusValidationPipe } from './pipes/board-status-validation.pipe';
@@ -13,9 +14,11 @@ export class BoardsController {
     constructor(private boardsService: BoardsService) { }
 
     @Get('/')
-    getAllBoard(): Promise<Board[]> {
+    getAllBoard(
+        @GetUser() user: User
+    ): Promise<Board[]> {
         this.logger.verbose(`User ${user.username} trying to get all boards`)
-        return this.boardsService.getAllBoards();
+        return this.boardsService.getAllBoards(user);
     }
 
     @Post()

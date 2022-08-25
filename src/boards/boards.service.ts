@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Board, BoardStatus } from '@prisma/client';
+import { Board, BoardStatus, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateBoardDto } from './dto/create-board.dto';
 
@@ -21,7 +21,7 @@ export class BoardsService {
         return found;
     }
 
-    async getAllBoards(): Promise<Board[]> {
+    async getAllBoards(user: User): Promise<Board[]> {
         return await this.prisma.board.findMany();
     }
 
